@@ -6,7 +6,7 @@
 ## 🔬 The Experiment: Quantum Retrodiction & The "Catch-22"
 This research utilizes 16-qubit statevector simulations to empirically observe the boundary between structured information (Everything) and maximum entropy (Nothing).
 
-https://www.youtube.com/watch?v=DSSNNGqjn8U
+<a href="https://www.youtube.com/watch?v=DSSNNGqjn8U" target="_blank">Video: The Real Math Behind AI "Emergence"</a>
 
 #### Key Empirical Demonstrations:
 The Quantum Parity "Catch-22": By pushing simulations to the Lieb-Robinson bound, the experiment demonstrates that information cannot be "recovered" without altering the context of the ledger itself.
