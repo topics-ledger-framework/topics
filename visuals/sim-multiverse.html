@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic-Ledger: Multiverse Genesis</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; }
+        
+        #container {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .universe-panel {
+            position: relative;
+            flex: 1;
+            border-bottom: 2px dashed #333;
+            overflow: hidden;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* UI OVERLAY */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+        }
+
+        .hud {
+            position: absolute; padding: 10px;
+            background: rgba(0, 0, 0, 0.8); border: 1px solid #555;
+            font-size: 12px; pointer-events: auto;
+            text-transform: uppercase;
+        }
+
+        /* Parent HUD (Red/Orange - High Energy/Old) */
+        #hud-parent { top: 20px; left: 20px; border-color: #ff5500; color: #ff5500; }
+        
+        /* Child HUD (Cyan/White - New/Pure) */
+        #hud-child { bottom: 20px; left: 20px; border-color: #00ffff; color: #00ffff; }
+
+        .controls {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; gap: 20px; pointer-events: auto; z-index: 100;
+        }
+
+        button {
+            background: #000; border: 1px solid #fff; color: #fff;
+            padding: 15px 30px; cursor: pointer; text-transform: uppercase; font-family: inherit;
+            font-weight: bold; transition: all 0.3s;
+        }
+        button:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+        button:disabled { border-color: #333; color: #333; cursor: not-allowed; box-shadow: none; }
+        
+        .bridge-visual {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 2px; height: 100%; background: linear-gradient(to bottom, #ff5500, #00ffff);
+            opacity: 0; transition: opacity 1s; z-index: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="bridge-visual" id="wormhole"></div>
+
+    <div id="container">
+        <div id="parent-panel" class="universe-panel">
+            <canvas id="canvas-parent"></canvas>
+        </div>
+
+        <div id="child-panel" class="universe-panel" style="border-bottom: none;">
+            <canvas id="canvas-child"></canvas>
+        </div>
+    </div>
+
+    <div id="ui-layer">
+        <div id="hud-parent" class="hud">
+            <h2>Parent Chain (The Bulk)</h2>
+            <div>State: <span id="state-parent">STABLE</span></div>
+            <div>Context Density: <span id="density-parent">HIGH</span></div>
+            <div>Black Hole Mass: <span id="mass-parent">0</span></div>
+        </div>
+
+        <div id="hud-child" class="hud">
+            <h2>Child Chain (Our Universe)</h2>
+            <div>State: <span id="state-child">NOTHING (Void)</span></div>
+            <div>Genesis Stake: <span id="stake-child">0</span></div>
+            <div>Epoch: <span id="epoch-child">0</span></div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-collapse" onclick="triggerCollapse()">Initiate Collapse (Black Hole)</button>
+            <button id="btn-fork" onclick="triggerFork()" disabled>Fork Reality (White Hole)</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const PARENT_COLOR = '#ff5500';
+        const CHILD_COLOR = '#00ffff';
+        const SINGULARITY_THRESHOLD = 500; // Mass needed to fork
+
+        class Universe {
+            constructor(canvasId, type) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.type = type; // 'PARENT' or 'CHILD'
+                this.particles = [];
+                this.singularity = null; // The Black/White Hole
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                if (type === 'PARENT') this.initParent();
+            }
+
+            resize() {
+                this.width = this.canvas.width = this.canvas.offsetWidth;
+                this.height = this.canvas.height = this.canvas.offsetHeight;
+            }
+
+            initParent() {
+                // Create a dense, chaotic universe
+                for(let i=0; i<150; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        vx: (Math.random()-0.5) * 2,
+                        vy: (Math.random()-0.5) * 2,
+                        size: Math.random() * 3 + 1,
+                        color: PARENT_COLOR
+                    });
+                }
+            }
+
+            createSingularity() {
+                this.singularity = {
+                    x: this.width / 2,
+                    y: this.type === 'PARENT' ? this.height * 0.8 : this.height * 0.2, // Bottom of Parent, Top of Child
+                    mass: 50,
+                    active: true
+                };
+            }
+
+            update() {
+                // 1. Particle Logic
+                for(let i = this.particles.length - 1; i >= 0; i--) {
+                    let p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+
+                    // Bounce
+                    if(p.x < 0 || p.x > this.width) p.vx *= -1;
+                    if(p.y < 0 || p.y > this.height) p.vy *= -1;
+
+                    // SINGULARITY GRAVITY
+                    if (this.singularity && this.singularity.active) {
+                        let dx = this.singularity.x - p.x;
+                        let dy = this.singularity.y - p.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+
+                        // If Parent: Black Hole SUCKS
+                        if (this.type === 'PARENT') {
+                            if (dist < 300) { // Horizon
+                                p.vx += (dx/dist) * 0.5;
+                                p.vy += (dy/dist) * 0.5;
+                            }
+                            // Event Horizon (Consumption)
+                            if (dist < this.singularity.mass / 2) {
+                                this.particles.splice(i, 1);
+                                this.singularity.mass += 2; // Grow mass
+                                updateHUD();
+                            }
+                        }
+                        
+                        // If Child: White Hole SPEWS
+                        if (this.type === 'CHILD') {
+                             // Particles fly away from center
+                        }
+                    }
+                }
+
+                // 2. Child Universe Spawning (The White Hole Effect)
+                if (this.type === 'CHILD' && this.singularity && this.singularity.active) {
+                    // Spew out "Pre-mined Supply"
+                    if (this.singularity.mass > 0) {
+                        this.singularity.mass -= 1; // Drain the supply
+                        for(let k=0; k<2; k++) { // Spawn rate
+                            let angle = Math.random() * Math.PI * 2;
+                            let speed = Math.random() * 5 + 2;
+                            this.particles.push({
+                                x: this.singularity.x,
+                                y: this.singularity.y,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                size: Math.random() * 2 + 1,
+                                color: CHILD_COLOR
+                            });
+                        }
+                        updateHUD();
+                    } else {
+                        // Genesis Complete
+                        this.singularity.active = false;
+                        document.getElementById('state-child').innerText = "EXISTENCE (Cooling)";
+                    }
+                }
+            }
+
+            draw() {
+                // Clear
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Trails
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                // Draw Singularity
+                if (this.singularity && this.singularity.active) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.singularity.x, this.singularity.y, this.type === 'PARENT' ? this.singularity.mass/2 : 10, 0, Math.PI*2);
+                    
+                    if (this.type === 'PARENT') {
+                        // Black Hole Look
+                        this.ctx.fillStyle = '#000';
+                        this.ctx.strokeStyle = '#ff5500';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.stroke();
+                        this.ctx.fill();
+                        
+                        // Accretion Disk glow
+                        this.ctx.shadowBlur = 50;
+                        this.ctx.shadowColor = '#ff5500';
+                    } else {
+                        // White Hole Look
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.shadowBlur = 100;
+                        this.ctx.shadowColor = '#00ffff';
+                        this.ctx.fill();
+                    }
+                    this.ctx.shadowBlur = 0; // Reset
+                }
+
+                // Draw Particles
+                for(let p of this.particles) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fill();
+                }
+            }
+        }
+
+        // --- CONTROLLER ---
+        const univParent = new Universe('canvas-parent', 'PARENT');
+        const univChild = new Universe('canvas-child', 'CHILD');
+        let transferMass = 0;
+
+        function triggerCollapse() {
+            document.getElementById('btn-collapse').disabled = true;
+            univParent.createSingularity();
+            document.getElementById('state-parent').innerText = "COLLAPSING...";
+        }
+
+        function triggerFork() {
+            document.getElementById('btn-fork').disabled = true;
+            
+            // Activate Wormhole Visual
+            document.getElementById('wormhole').style.opacity = 1;
+            
+            // Transfer Mass Logic
+            transferMass = univParent.singularity.mass;
+            univChild.createSingularity();
+            univChild.singularity.mass = transferMass; // Set Pre-mined Supply
+            
+            document.getElementById('state-child').innerText = "BIG BANG (Genesis)";
+            document.getElementById('stake-child').innerText = transferMass;
+            
+            // Remove Black Hole from Parent (It "fell out")
+            univParent.singularity.mass = 0; 
+            univParent.singularity.active = false;
+            document.getElementById('state-parent').innerText = "FORKED (Hole in Ledger)";
+        }
+
+        function updateHUD() {
+            if(univParent.singularity) {
+                document.getElementById('mass-parent').innerText = Math.floor(univParent.singularity.mass);
+                
+                // Enable Forking if enough mass is consumed
+                if (univParent.singularity.mass > 200 && !document.getElementById('btn-fork').disabled) {
+                    // Wait for user to click
+                } else if (univParent.singularity.mass > 200 && document.getElementById('state-child').innerText.includes("NOTHING")) {
+                     document.getElementById('btn-fork').disabled = false;
+                }
+            }
+        }
+
+        function loop() {
+            univParent.update(); univParent.draw();
+            univChild.update(); univChild.draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+    </script>
+</body>
+</html>

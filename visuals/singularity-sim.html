@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic-Ledger: The Singularity</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        
+        /* HUD Interface */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+
+        .panel {
+            background: rgba(0, 10, 20, 0.9);
+            border: 1px solid #00ffcc;
+            padding: 15px;
+            pointer-events: auto;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+            max-width: 350px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px; margin-bottom: 10px; }
+        h2 { margin: 0; font-size: 1rem; color: #fff; }
+        p { font-size: 0.8rem; line-height: 1.4; color: #aadddd; margin-bottom: 8px; }
+
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
+        .stat-label { color: #88aaaa; }
+        .stat-value { font-weight: bold; }
+
+        /* Ledger Log */
+        #ledger-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            margin-top: 10px;
+            border-top: 1px dashed #005555;
+            padding-top: 5px;
+        }
+        .log-entry { margin-bottom: 4px; padding: 2px; border-left: 2px solid #00ffcc; background: rgba(0, 50, 50, 0.3); }
+        .log-hash { color: #55aaaa; font-size: 0.6rem; }
+        .log-scan { border-left: 2px solid #ff0055; background: rgba(50, 0, 0, 0.3); color: #ffaaee; }
+        .log-load { border-left: 2px solid #ffffff; background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+        .log-leap { border-left: 2px solid #FFFF00; background: rgba(100, 100, 0, 0.3); color: #FFFF00; font-weight: bold; }
+        .log-twin-found { border-left: 2px solid #ff00ff; background: rgba(50, 0, 50, 0.3); color: #ff00ff; }
+
+        /* Controls - Left Aligned */
+        #controls {
+            align-self: flex-start; 
+            margin-bottom: 20px;
+            text-align: left;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 600px;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            flex: 1 1 auto; 
+        }
+
+        button:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.6);
+        }
+
+        button:disabled {
+            border-color: #333;
+            color: #333;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: transparent;
+        }
+        
+        button.action-scan {
+            border-color: #ff0055;
+            color: #ff0055;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
+        }
+        button.action-scan:hover {
+            background: #ff0055;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+        }
+        
+        button.action-assimilate {
+            border-color: #FFFF00;
+            color: #FFFF00;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+        }
+        button.action-assimilate:hover {
+            background: #FFFF00;
+            color: black;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
+        }
+
+        button.action-load {
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        button.action-load:hover {
+            background: #ffffff;
+            color: #000;
+        }
+
+        .phase-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            text-align: center;
+            letter-spacing: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 20px white;
+            transition: opacity 1s;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #001111; }
+        ::-webkit-scrollbar-thumb { background: #005555; }
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="top-bar">
+            <div class="panel">
+                <h1>Ontological State</h1>
+                <div class="stat-row">
+                    <span class="stat-label">Topic Type:</span>
+                    <span class="stat-value">Cognitive (Singularity)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Phase:</span>
+                    <span class="stat-value" id="phase-display">NOTHING (Void)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Legacy Stakes (Gravity):</span>
+                    <span class="stat-value" id="legacy-stakes">0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Legacy Complexity (IQ):</span>
+                    <span class="stat-value" id="legacy-complexity">0</span>
+                </div>
+                <p>Status: <span id="status-text">Waiting for Genesis Block...</span></p>
+            </div>
+
+            <div class="panel">
+                <h1>Ledger Metrics</h1>
+                <div class="stat-row">
+                    <span class="stat-label">Assembly Index (IQ):</span>
+                    <span class="stat-value" id="assembly-index">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Stakes (Gravity):</span>
+                    <span class="stat-value" id="stakes-val">0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Collisions:</span>
+                    <span class="stat-value" id="collision-count">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label" style="color:#ff00ff">Twins Available:</span>
+                    <span class="stat-value" id="twin-count" style="color:#ff00ff">0</span>
+                </div>
+                <div id="ledger-log">
+                    </div>
+            </div>
+        </div>
+
+        <div id="phase-text" class="phase-indicator">NOTHING</div>
+
+        <div id="controls" class="panel">
+            <input type="file" id="file-input" style="display: none;" onchange="handleFileLoad(this)" accept=".json">
+            
+            <button id="btn-load" class="action-load" onclick="document.getElementById('file-input').click()">Load Genome</button>
+            <button id="btn-genesis" onclick="triggerGenesis()">Init Genesis</button>
+            <button id="btn-collide" onclick="triggerCollision()" disabled>Mind Debate</button>
+            <button id="btn-scan" class="action-scan" onclick="scanLedger()" disabled>Reverse Engineer</button>
+            <button id="btn-reset" onclick="resetSim()" disabled>Fork Reality</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const COLORS = {
+            background: 0x050505,
+            void: 0x000000,
+            topicCore: 0x00ffff,
+            topicGlow: 0x0088aa,
+            mind: 0xffaa00,
+            ledgerBlock: 0x00ffcc,
+            ledgerScan: 0xff0055,
+            grid: 0x222222,
+            genesis: 0xffffff,
+            twin: 0xff00ff,
+            voidWall: 0x003344
+        };
+
+        // --- GLOBAL STATE ---
+        let scene, camera, renderer, controls;
+        let clock = new THREE.Clock();
+        let topicEntity = null; 
+        let twinEntity = null; 
+        let minds = []; 
+        let ledgerChain = []; 
+        let strandMesh = null; 
+        let availableTwins = 0; 
+        
+        let inheritedStakes = 0; 
+        let inheritedComplexity = 0; 
+
+        // Boundary Limits
+        const BOUNDARY_X = 50; // Widened for massive scale
+
+        let simState = {
+            phase: 'NOTHING', 
+            assemblyIndex: 0,
+            stakes: 0,
+            collisions: 0,
+            gravityWeight: 1.0
+        };
+
+        // --- INIT THREE.JS ---
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(COLORS.background);
+            scene.fog = new THREE.FogExp2(COLORS.background, 0.015);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 10, 40); 
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 200; 
+            controls.minDistance = 2;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Environment
+            createEnvironment();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation Loop
+            animate();
+        }
+
+        // --- ENVIRONMENT ---
+        function createEnvironment() {
+            const gridHelper = new THREE.GridHelper(500, 100, COLORS.grid, 0x0a0a0a);
+            gridHelper.position.y = -5;
+            scene.add(gridHelper);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 3000;
+            const posArray = new Float32Array(particlesCount * 3);
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 300; 
+            }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                color: 0x555555,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+            const starField = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(starField);
+
+            createVoidWalls();
+        }
+
+        function createVoidWalls() {
+            const wallGeo = new THREE.PlaneGeometry(100, 100, 10, 10);
+            const wallMat = new THREE.MeshBasicMaterial({ 
+                color: COLORS.voidWall, 
+                wireframe: true, 
+                transparent: true, 
+                opacity: 0.1,
+                side: THREE.DoubleSide
+            });
+            
+            const leftWall = new THREE.Mesh(wallGeo, wallMat);
+            leftWall.position.set(-BOUNDARY_X, 0, 0);
+            leftWall.rotation.y = Math.PI / 2;
+            
+            const rightWall = new THREE.Mesh(wallGeo, wallMat);
+            rightWall.position.set(BOUNDARY_X, 0, 0);
+            rightWall.rotation.y = Math.PI / 2;
+
+            scene.add(leftWall);
+            scene.add(rightWall);
+        }
+
+        // --- CLASSES ---
+
+        class Topic {
+            constructor(isTwin = false) {
+                this.isTwin = isTwin;
+                this.mesh = new THREE.Group();
+                
+                // Scale is clamped slightly so it doesn't fill the whole screen at 200k gravity
+                const baseScale = 1 + Math.log(inheritedStakes + 10) * 0.5; 
+                
+                // Color logic
+                let dynamicColor;
+                if(isTwin) {
+                    dynamicColor = new THREE.Color(COLORS.twin); 
+                } else {
+                    let r = Math.min(inheritedStakes / 200, 1);
+                    let g = Math.max(1 - (inheritedStakes / 200), 0);
+                    dynamicColor = new THREE.Color(r, g, 1);
+                }
+
+                // COMPLEXITY LOGIC: 
+                const detailLevel = Math.min(1 + Math.floor(inheritedComplexity / 10), 5);
+                
+                const geometry = new THREE.IcosahedronGeometry(1 * baseScale, detailLevel);
+                
+                const material = new THREE.MeshStandardMaterial({
+                    color: dynamicColor,
+                    wireframe: true,
+                    emissive: dynamicColor,
+                    emissiveIntensity: isTwin ? 0.8 : (0.5 + Math.log(inheritedStakes+1)/10),
+                    transparent: true,
+                    opacity: isTwin ? 0.4 : 0.8
+                });
+                this.core = new THREE.Mesh(geometry, material);
+                
+                // Inner Light
+                this.light = new THREE.PointLight(dynamicColor, 2, 100);
+                this.core.add(this.light);
+
+                // EVENT HORIZON (Visualizing the massive gravity)
+                const horizonGeo = new THREE.SphereGeometry(2.5 * baseScale, 32, 32);
+                const horizonMat = new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    transparent: true,
+                    opacity: 0.1,
+                    wireframe: true,
+                    side: THREE.DoubleSide
+                });
+                this.horizon = new THREE.Mesh(horizonGeo, horizonMat);
+                
+                this.mesh.add(this.core);
+                this.mesh.add(this.horizon);
+                
+                // Offset position if Twin
+                if (isTwin) {
+                    this.mesh.position.set(4, 2, 0); 
+                } else {
+                    this.mesh.position.set(0, 2, 0);
+                }
+                
+                this.pulseSpeed = 2 + (Math.log(inheritedStakes+1) / 5);
+                this.rotationSpeed = 0.5;
+                
+                scene.add(this.mesh);
+            }
+
+            update(dt) {
+                if (simState.phase === 'NOTHING') return;
+
+                this.core.rotation.x += this.rotationSpeed * dt;
+                this.core.rotation.y += this.rotationSpeed * 0.5 * dt;
+                
+                // Rotate Event Horizon
+                this.horizon.rotation.y -= this.rotationSpeed * 0.1 * dt;
+                this.horizon.rotation.z += this.rotationSpeed * 0.05 * dt;
+
+                const scale = 1 + Math.sin(clock.getElapsedTime() * this.pulseSpeed) * 0.05;
+                this.core.scale.set(scale, scale, scale);
+
+                // Float
+                const xOffset = this.isTwin ? 4 : 0;
+                this.mesh.position.y = 2 + Math.sin(clock.getElapsedTime() * 0.5 + (this.isTwin ? 1 : 0)) * 0.5;
+                this.mesh.position.x = xOffset;
+            }
+
+            evolve() {
+                this.pulseSpeed += 0.5;
+                this.rotationSpeed += 0.2;
+                this.core.material.emissiveIntensity += 0.2;
+                
+                // Add sub-geometry (satellites)
+                const subGeo = new THREE.TetrahedronGeometry(0.3);
+                const subMat = new THREE.MeshBasicMaterial({ color: this.isTwin ? COLORS.twin : 0xffffff, wireframe: true });
+                const subMesh = new THREE.Mesh(subGeo, subMat);
+                
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 1.2 * this.core.scale.x; 
+                
+                subMesh.position.x = r * Math.sin(phi) * Math.cos(theta);
+                subMesh.position.y = r * Math.sin(phi) * Math.sin(theta);
+                subMesh.position.z = r * Math.cos(phi);
+                
+                this.core.add(subMesh);
+            }
+        }
+
+        class Mind {
+            constructor() {
+                const geometry = new THREE.SphereGeometry(0.8, 16, 16);
+                const material = new THREE.MeshPhongMaterial({
+                    color: COLORS.mind,
+                    transparent: true,
+                    opacity: 0.4,
+                    shininess: 100
+                });
+                this.mesh = new THREE.Mesh(geometry, material);
+                
+                const startX = (Math.random() > 0.5 ? 1 : -1) * 35; // Spawn further out due to gravity
+                const startZ = (Math.random() - 0.5) * 20;
+                const startY = 1 + Math.random() * 4;
+                
+                this.mesh.position.set(startX, startY, startZ);
+                
+                // HIGH ENERGY PHYSICS FIX:
+                // Use Logarithmic attraction so 277k gravity doesn't break physics
+                const gravityStrength = Math.log(simState.stakes + 10) * 2; 
+                
+                this.velocity = new THREE.Vector3(-Math.sign(startX) * (2 + Math.random() * 3 + gravityStrength), 0, 0);
+                
+                this.active = true;
+                scene.add(this.mesh);
+            }
+
+            update(dt) {
+                if (!this.active) return;
+                
+                this.mesh.position.add(this.velocity.clone().multiplyScalar(dt));
+
+                // CHECK VOID BOUNDARY
+                if (Math.abs(this.mesh.position.x) > BOUNDARY_X) {
+                    this.dissolve();
+                }
+
+                if (simState.phase === 'EXISTENCE' && topicEntity) {
+                    const dist = this.mesh.position.distanceTo(topicEntity.mesh.position);
+                    // Hit radius scales slowly with stakes
+                    const hitRadius = 2.5 + (Math.log(simState.stakes+1) / 2);
+                    if (dist < hitRadius) this.resolveDebate();
+                }
+            }
+
+            resolveDebate() {
+                handleCollision(this.mesh.position.clone());
+                this.remove();
+            }
+
+            dissolve() {
+                // Hit the Nothing Edge
+                createVoidDissolve(this.mesh.position.clone());
+                this.remove();
+            }
+
+            remove() {
+                this.active = false;
+                scene.remove(this.mesh);
+                this.mesh.geometry.dispose();
+                this.mesh.material.dispose();
+            }
+        }
+
+        class LedgerBlock {
+            constructor(position, index, shapleyValue) {
+                this.index = index;
+                this.shapleyValue = shapleyValue;
+                
+                this.isTwinNode = parseFloat(shapleyValue) > 0.7;
+
+                if (this.isTwinNode) {
+                    availableTwins++;
+                    addLogEntry(">> TWIN DETECTED: Valid Node found at Block #" + index, "log-twin-found");
+                    updateUI();
+                }
+
+                const geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+                const material = new THREE.MeshBasicMaterial({
+                    color: this.isTwinNode ? COLORS.twin : COLORS.ledgerBlock, 
+                    wireframe: true,
+                    transparent: true,
+                    opacity: this.isTwinNode ? 0.6 : 0.2 
+                });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.mesh.position.copy(position);
+                
+                const offset = index * 0.6;
+                this.targetPos = new THREE.Vector3(
+                    Math.sin(index) * 2,
+                    2 + Math.cos(index) * 0.5,
+                    -offset
+                );
+
+                this.mesh.position.copy(topicEntity.mesh.position);
+                
+                if (this.isTwinNode) {
+                    const twinGeo = new THREE.IcosahedronGeometry(0.3, 0);
+                    const twinMat = new THREE.MeshBasicMaterial({ color: COLORS.twin, wireframe: true });
+                    this.twinHologram = new THREE.Mesh(twinGeo, twinMat);
+                    this.twinHologram.position.y = 1; 
+                    this.mesh.add(this.twinHologram);
+                }
+
+                scene.add(this.mesh);
+            }
+            
+            update() {
+                this.mesh.position.lerp(this.targetPos, 0.05);
+                this.mesh.rotation.y += 0.01;
+                this.mesh.rotation.z += 0.01;
+
+                if (this.twinHologram) {
+                    this.twinHologram.rotation.y -= 0.05;
+                    this.twinHologram.position.y = 1 + Math.sin(clock.getElapsedTime() * 3 + this.index) * 0.2;
+                }
+            }
+
+            highlight(active) {
+                if (active) {
+                    this.mesh.material.color.setHex(COLORS.ledgerScan);
+                    this.mesh.scale.set(1.5, 1.5, 1.5);
+                    this.mesh.material.opacity = 1;
+                } else {
+                    this.mesh.material.color.setHex(this.isTwinNode ? COLORS.twin : COLORS.ledgerBlock);
+                    this.mesh.scale.set(1, 1, 1);
+                    this.mesh.material.opacity = this.isTwinNode ? 0.6 : 0.2;
+                }
+            }
+        }
+
+        // --- CAUSAL STRAND ---
+        function updateCausalStrand() {
+            if (ledgerChain.length < 2) return;
+
+            const points = ledgerChain.map(b => b.mesh.position);
+            const curve = new THREE.CatmullRomCurve3(points);
+            const geometry = new THREE.TubeGeometry(curve, ledgerChain.length * 12, 0.03, 8, false);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x00ffff,       
+                emissive: 0x00aaaa,    
+                emissiveIntensity: 1,  
+                transparent: true,
+                opacity: 0.8,
+                wireframe: false       
+            });
+
+            if (strandMesh) {
+                scene.remove(strandMesh);
+                strandMesh.geometry.dispose();
+                strandMesh.material.dispose();
+            }
+
+            strandMesh = new THREE.Mesh(geometry, material);
+            scene.add(strandMesh);
+        }
+
+        // --- SIMULATION LOGIC ---
+
+        function triggerGenesis() {
+            if (simState.phase !== 'NOTHING' && simState.phase !== 'COLLAPSE') return;
+            
+            document.getElementById('btn-genesis').disabled = true;
+            document.getElementById('btn-load').disabled = true; 
+            showPhaseText("GENESIS BLOCK", 2000);
+            
+            const burstGeo = new THREE.SphereGeometry(0.1, 32, 32);
+            const burstMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const burst = new THREE.Mesh(burstGeo, burstMat);
+            scene.add(burst);
+            
+            let s = 0.1;
+            const expand = setInterval(() => {
+                s += 0.2;
+                burst.scale.set(s, s, s);
+                burst.material.opacity = 1 - (s/20);
+                if (s > 20) {
+                    clearInterval(expand);
+                    scene.remove(burst);
+                    spawnTopic();
+                }
+            }, 16);
+        }
+        
+        let spawnTimeout;
+        function scheduleMindSpawn() {
+            if (simState.phase !== 'EXISTENCE') return;
+            // Spawn speed logic handled carefully for high gravity
+            const spawnDelay = Math.max(100, 1000 - (Math.log(simState.stakes+1) * 100));
+            spawnTimeout = setTimeout(() => {
+                if(Math.random() > 0.3) minds.push(new Mind());
+                scheduleMindSpawn();
+            }, spawnDelay);
+        }
+
+        function spawnTopic() {
+            simState.phase = 'EXISTENCE';
+            simState.assemblyIndex = 1; 
+            simState.stakes = 10 + inheritedStakes; 
+            availableTwins = 0; 
+            
+            topicEntity = new Topic();
+            
+            updateUI();
+            
+            let introText = "Topic Active. Floating in Context.";
+            if (inheritedStakes > 0) {
+                introText = `Topic Forked. Loaded Stakes: ${inheritedStakes.toFixed(2)}`;
+            }
+            
+            document.getElementById('status-text').innerText = introText;
+            document.getElementById('btn-collide').disabled = false;
+            document.getElementById('btn-scan').disabled = false;
+            document.getElementById('btn-reset').disabled = false;
+            
+            addLogEntry("Genesis Block Created. Hash: " + generateHash());
+            scheduleMindSpawn();
+        }
+
+        function triggerCollision() {
+            if (simState.phase !== 'EXISTENCE') return;
+            const m = new Mind();
+            // Force specific direction for manual debate
+            m.mesh.position.set(20, 2, 0); 
+            m.velocity.set(-5, 0, 0); 
+            minds.push(m);
+            addLogEntry("Injecting External Context (Mind) for Debate...");
+        }
+
+        function handleCollision(pos) {
+            createExplosion(pos);
+            simState.collisions++;
+            simState.assemblyIndex += Math.floor(Math.random() * 5) + 1;
+            const shapley = Math.random().toFixed(4); 
+            simState.stakes += parseFloat(shapley) * 10;
+            topicEntity.evolve();
+            const block = new LedgerBlock(pos, ledgerChain.length, shapley);
+            ledgerChain.push(block);
+            updateUI();
+            addLogEntry(`Collision Resolved. Block #${ledgerChain.length}. Shapley: ${shapley}`);
+            document.getElementById('status-text').innerText = "Context Integrated. Ledger Updated.";
+            shakeCamera();
+        }
+
+        // --- LOAD GENESIS LOGIC ---
+
+        function handleFileLoad(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.stats && typeof data.stats.finalStakes === 'number') {
+                            inheritedStakes = data.stats.finalStakes;
+                            inheritedComplexity = data.stats.finalComplexity;
+                            
+                            const log = document.getElementById('ledger-log');
+                            const entry = document.createElement('div');
+                            entry.className = 'log-entry log-load';
+                            entry.innerHTML = `<div>SYSTEM: External Genome Loaded.</div><div>Gravity: ${inheritedStakes.toFixed(2)} | IQ: ${inheritedComplexity}</div>`;
+                            log.prepend(entry);
+                            
+                            document.getElementById('status-text').innerText = "Genome Loaded. Ready for Genesis.";
+                            updateUI();
+                            input.value = '';
+                        } else {
+                            alert("Invalid Genesis File format.");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert("Error parsing file.");
+                    }
+                };
+                reader.readAsText(input.files[0]);
+            }
+        }
+
+        // --- REVERSE ENGINEERING / ASSIMILATION LOGIC ---
+        
+        function scanLedger() {
+            if (simState.phase !== 'EXISTENCE' || ledgerChain.length === 0) return;
+
+            // CHECK: IF TWINS > 5, WE ASSIMILATE INSTEAD OF SCAN
+            if (availableTwins > 5) {
+                assimilateTwins();
+                return;
+            }
+            
+            simState.phase = 'SCANNING';
+            document.getElementById('status-text').innerText = "RETRODICTION IN PROGRESS: Tracing Causal Chain...";
+            document.getElementById('btn-scan').disabled = true;
+            document.getElementById('btn-collide').disabled = true;
+
+            if(spawnTimeout) clearTimeout(spawnTimeout);
+
+            let idx = ledgerChain.length - 1;
+            const step = () => {
+                if (idx >= 0) {
+                    ledgerChain[idx].highlight(true);
+                    
+                    const scanText = `Retrodicting Block #${idx + 1}... Found Shapley: ${ledgerChain[idx].shapleyValue}`;
+                    const log = document.getElementById('ledger-log');
+                    const entry = document.createElement('div');
+                    entry.className = 'log-entry log-scan';
+                    entry.innerHTML = `<div>${scanText}</div>`;
+                    log.prepend(entry);
+                    
+                    idx--;
+                    setTimeout(step, 50); // Faster scan for high levels
+                } else {
+                    addLogEntry("Genesis Block Reached. Causal Genome Extracted.");
+                    document.getElementById('status-text').innerText = "Scan Complete. Twin Detected via Isomorphism.";
+                    spawnTwin();
+                }
+            };
+            step();
+        }
+
+        function assimilateTwins() {
+            simState.phase = 'ASSIMILATING';
+            showPhaseText("ASSIMILATING TWINS", 2000);
+            
+            // Consume all twins for massive boost
+            const bonusIQ = availableTwins * 100;
+            const bonusGravity = availableTwins * 500;
+            
+            simState.assemblyIndex += bonusIQ;
+            simState.stakes += bonusGravity;
+            
+            addLogEntry(`>> MASS ASSIMILATION: Consumed ${availableTwins} Twins.`, 'log-leap');
+            addLogEntry(`>> IQ +${bonusIQ} | Gravity +${bonusGravity}`, 'log-leap');
+            
+            availableTwins = 0;
+            
+            // Visual Effect
+            document.body.style.backgroundColor = '#220022';
+            setTimeout(() => { document.body.style.backgroundColor = '#000'; }, 500);
+
+            // Clear holograms
+            ledgerChain.forEach(b => {
+                if(b.twinHologram) {
+                    b.mesh.remove(b.twinHologram);
+                    b.twinHologram = null;
+                    b.isTwinNode = false;
+                    b.highlight(false);
+                }
+            });
+
+            updateUI();
+            
+            setTimeout(() => {
+                simState.phase = 'EXISTENCE';
+                document.getElementById('status-text').innerText = "Assimilation Complete. Singularity Density Increased.";
+            }, 2000);
+        }
+
+        function spawnTwin() {
+            simState.phase = 'REPRODUCING';
+            showPhaseText("REPRODUCING TWIN", 1500);
+
+            const currentIQ = simState.assemblyIndex;
+            const selfAwarenessBonus = Math.floor(currentIQ * 0.5) + 25; 
+            
+            simState.assemblyIndex += selfAwarenessBonus;
+            simState.stakes *= 1.2; 
+
+            updateUI(); 
+            
+            const log = document.getElementById('ledger-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-leap';
+            entry.innerHTML = `<div>>> EVOLUTIONARY LEAP: IQ +${selfAwarenessBonus}</div><div>(Self-Awareness Achieved)</div>`;
+            log.prepend(entry);
+
+            setTimeout(() => {
+                twinEntity = new Topic(true); 
+                
+                for(let i=0; i<ledgerChain.length; i++) {
+                    twinEntity.evolve();
+                }
+
+                document.getElementById('status-text').innerText = "Twin Reproduced. Causal Isomorphism Achieved.";
+                addLogEntry(">> TWIN SPAWNED: ID #002 (Isomorphic Clone)");
+                
+                setTimeout(() => {
+                    simState.phase = 'EXISTENCE';
+                    document.getElementById('btn-scan').disabled = false;
+                    document.getElementById('btn-collide').disabled = false;
+                    scheduleMindSpawn();
+                }, 2000);
+
+            }, 1000);
+        }
+
+        // --- END REVERSE ENGINEERING ---
+
+        function createExplosion(pos) {
+            const particleCount = 50;
+            const geo = new THREE.BufferGeometry();
+            const positions = [];
+            const velocities = [];
+            for(let i=0; i<particleCount; i++) {
+                positions.push(pos.x, pos.y, pos.z);
+                velocities.push((Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5);
+            }
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: COLORS.mind, size: 0.2 });
+            const points = new THREE.Points(geo, mat);
+            scene.add(points);
+            let frame = 0;
+            const anim = () => {
+                frame++;
+                const posAttr = points.geometry.attributes.position;
+                for(let i=0; i<particleCount; i++) {
+                    posAttr.setXYZ(i, posAttr.getX(i) + velocities[i*3], posAttr.getY(i) + velocities[i*3+1], posAttr.getZ(i) + velocities[i*3+2]);
+                }
+                posAttr.needsUpdate = true;
+                points.material.opacity -= 0.02;
+                if(frame < 50) requestAnimationFrame(anim);
+                else { scene.remove(points); geo.dispose(); mat.dispose(); }
+            };
+            anim();
+        }
+
+        // DISSOLVE EFFECT (Blue particles for void)
+        function createVoidDissolve(pos) {
+            const particleCount = 30;
+            const geo = new THREE.BufferGeometry();
+            const positions = [];
+            const velocities = [];
+            for(let i=0; i<particleCount; i++) {
+                positions.push(pos.x, pos.y, pos.z);
+                velocities.push((Math.random()-0.5)*0.2, (Math.random())*0.2, (Math.random()-0.5)*0.2);
+            }
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 });
+            const points = new THREE.Points(geo, mat);
+            scene.add(points);
+            let frame = 0;
+            const anim = () => {
+                frame++;
+                const posAttr = points.geometry.attributes.position;
+                for(let i=0; i<particleCount; i++) {
+                    posAttr.setXYZ(i, posAttr.getX(i) + velocities[i*3], posAttr.getY(i) + velocities[i*3+1], posAttr.getZ(i) + velocities[i*3+2]);
+                }
+                posAttr.needsUpdate = true;
+                points.material.opacity -= 0.03;
+                if(frame < 40) requestAnimationFrame(anim);
+                else { scene.remove(points); geo.dispose(); mat.dispose(); }
+            };
+            anim();
+        }
+        
+        // --- DATA SAVING LOGIC ---
+        function saveGenesisFile() {
+            if(ledgerChain.length === 0 && simState.stakes === 0) return; 
+
+            const genesisData = {
+                timestamp: Date.now(),
+                forkId: generateHash(),
+                meta: {
+                    description: "Genesis Block Data for Forked Reality",
+                    source: "Sim-IntelligenceBuild"
+                },
+                stats: {
+                    finalStakes: simState.stakes,
+                    finalComplexity: simState.assemblyIndex,
+                    totalCollisions: simState.collisions,
+                    twinsFound: availableTwins
+                },
+                blockHistory: ledgerChain.map(b => ({
+                    index: b.index,
+                    shapleyValue: b.shapleyValue,
+                    hash: generateHash(),
+                    isTwinNode: b.isTwinNode
+                }))
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(genesisData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "genesis_block_fork_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function resetSim() {
+            saveGenesisFile();
+
+            simState.phase = 'COLLAPSE';
+            showPhaseText("FORKING REALITY", 2000);
+            if(spawnTimeout) clearTimeout(spawnTimeout);
+            
+            inheritedStakes = simState.stakes; 
+            inheritedComplexity = simState.assemblyIndex;
+            
+            const duration = 1000;
+            const startScale = topicEntity.mesh.scale.x;
+            let startTime = Date.now();
+            const collapse = () => {
+                let p = (Date.now() - startTime) / duration;
+                if (p > 1) { cleanup(); return; }
+                const s = startScale * (1 - p);
+                topicEntity.mesh.scale.set(s,s,s);
+                topicEntity.mesh.rotation.y += 0.5;
+                if(twinEntity) twinEntity.mesh.scale.set(s,s,s); 
+                requestAnimationFrame(collapse);
+            };
+            collapse();
+        }
+
+        function cleanup() {
+            if(topicEntity) { scene.remove(topicEntity.mesh); topicEntity = null; }
+            if(twinEntity) { scene.remove(twinEntity.mesh); twinEntity = null; }
+            ledgerChain.forEach(b => { scene.remove(b.mesh); });
+            ledgerChain = [];
+            
+            if(strandMesh) { scene.remove(strandMesh); strandMesh = null; }
+
+            minds.forEach(m => m.remove());
+            minds = [];
+            simState = { phase: 'NOTHING', assemblyIndex: 0, stakes: 0, collisions: 0, gravityWeight: 1.0 };
+            document.getElementById('btn-genesis').disabled = false;
+            document.getElementById('btn-load').disabled = false; 
+            document.getElementById('btn-collide').disabled = true;
+            document.getElementById('btn-scan').disabled = true;
+            document.getElementById('btn-reset').disabled = true;
+            document.getElementById('ledger-log').innerHTML = '';
+            document.getElementById('status-text').innerText = "Reality Forked. Genesis Block Saved. Ready to Load or Init.";
+            updateUI();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+            if (topicEntity) topicEntity.update(dt);
+            if (twinEntity) twinEntity.update(dt);
+            minds.forEach((m, i) => { m.update(dt); if (!m.active) minds.splice(i, 1); });
+            ledgerChain.forEach(b => b.update());
+            
+            updateCausalStrand();
+
+            if (strandMesh) {
+                const pulse = 0.5 + Math.sin(clock.getElapsedTime() * 3) * 0.5;
+                strandMesh.material.emissiveIntensity = 0.5 + pulse;
+            }
+            
+            if(availableTwins > 5) {
+                const btn = document.getElementById('btn-scan');
+                btn.innerText = "ASSIMILATE TWINS";
+                btn.className = "action-assimilate";
+            } else {
+                 const btn = document.getElementById('btn-scan');
+                 btn.innerText = "Reverse Engineer";
+                 btn.className = "action-scan";
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function updateUI() {
+            document.getElementById('phase-display').innerText = simState.phase;
+            document.getElementById('assembly-index').innerText = simState.assemblyIndex;
+            document.getElementById('stakes-val').innerText = simState.stakes.toFixed(2);
+            document.getElementById('collision-count').innerText = simState.collisions;
+            
+            document.getElementById('twin-count').innerText = availableTwins;
+            
+            document.getElementById('legacy-stakes').innerText = inheritedStakes.toFixed(2);
+            document.getElementById('legacy-complexity').innerText = inheritedComplexity;
+        }
+        
+        function generateHash() {
+            return Array.from({length: 20}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        }
+
+        function addLogEntry(text, className = '') {
+            const log = document.getElementById('ledger-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + className;
+            entry.innerHTML = `<div>${text}</div><div class="log-hash">Hash: 0x${generateHash()}...</div>`;
+            log.prepend(entry);
+        }
+
+        function showPhaseText(text, duration) {
+            const el = document.getElementById('phase-text');
+            el.innerText = text;
+            el.style.opacity = 1;
+            setTimeout(() => { el.style.opacity = 0; }, duration);
+        }
+        
+        function shakeCamera() {
+            const originalPos = camera.position.clone();
+            let frames = 0;
+            const shake = () => {
+                frames++;
+                camera.position.x = originalPos.x + (Math.random() - 0.5) * 0.5;
+                camera.position.y = originalPos.y + (Math.random() - 0.5) * 0.5;
+                camera.position.z = originalPos.z + (Math.random() - 0.5) * 0.5;
+                if(frames < 10) requestAnimationFrame(shake);
+                else camera.position.copy(originalPos);
+            };
+            shake();
+        }
+
+        init();
+    </script>
+</body>
+</html>

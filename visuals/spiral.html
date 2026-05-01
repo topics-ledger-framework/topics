@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic-Ledger: Chronogenesis</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', monospace; color: #00ffcc; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .panel {
+            background: rgba(0, 10, 20, 0.9); border: 1px solid #00ffcc; padding: 15px;
+            pointer-events: auto; width: 300px; backdrop-filter: blur(5px);
+        }
+
+        h2 { margin: 0 0 10px 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px; }
+        
+        .stat { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .val { font-weight: bold; color: #fff; }
+
+        .block-feed {
+            height: 150px; overflow-y: hidden; position: relative;
+            border-top: 1px dashed #333; margin-top: 10px; padding-top: 5px;
+        }
+        
+        .block-entry {
+            font-size: 10px; color: #00ffcc; margin-bottom: 2px;
+            opacity: 0; animation: slideIn 0.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        button {
+            width: 100%; padding: 10px; background: #003344; border: 1px solid #00ffcc; color: #00ffcc;
+            text-transform: uppercase; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 5px;
+        }
+        button:hover { background: #00ffcc; color: #000; }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
+
+    <div id="ui-layer">
+        <div class="panel">
+            <h2>Topic Dimensionality</h2>
+            <div class="stat"><span>Time Height:</span><span id="height-val" class="val">0</span></div>
+            <div class="stat"><span>Current Hash:</span><span id="hash-val" class="val">--</span></div>
+            <div class="stat"><span>Stakes (Gravity):</span><span id="stakes-val" class="val">100</span></div>
+            
+            <div style="margin-top: 15px; font-size: 11px; color: #aaa;">
+                LEDGER ACTIVITY (Minting Time):
+            </div>
+            <div id="block-feed" class="block-feed"></div>
+        </div>
+
+        <div class="panel" style="align-self: flex-end;">
+            <h2>Controls</h2>
+            <button onclick="togglePause()">Pause / Resume</button>
+            <button onclick="addStakes()">Increase Stakes (Gravity)</button>
+            <div style="font-size: 10px; color: #888; margin-top: 5px;">
+                *Increasing stakes densifies the chain (Time Dilation).
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.FogExp2(0x050505, 0.005);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(20, 20, 40);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0x00ffff, 2, 100);
+        scene.add(pointLight);
+
+        // --- THE TOPIC (The Cursor of Reality) ---
+        const topicGeo = new THREE.IcosahedronGeometry(1, 1);
+        const topicMat = new THREE.MeshStandardMaterial({ 
+            color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1, wireframe: true 
+        });
+        const topicHead = new THREE.Mesh(topicGeo, topicMat);
+        scene.add(topicHead);
+
+        // --- STATE ---
+        let blocks = [];
+        let isRunning = true;
+        let frame = 0;
+        let stakes = 100;
+        let blockHeight = 0;
+        let lastPos = new THREE.Vector3(0,0,0);
+
+        // --- BLOCK GENERATION LOGIC ---
+        function mintBlock() {
+            // Determine position based on Spiral (Dimensionality)
+            // Time isn't a line, it's a helix through the "Nothing"
+            let t = blockHeight * 0.2; 
+            let radius = 5 + Math.sin(t * 0.5) * 2; // Breathing radius
+            
+            let x = Math.cos(t) * radius;
+            let z = Math.sin(t) * radius;
+            let y = blockHeight * 0.8; // Time flows UP
+
+            let targetPos = new THREE.Vector3(x, y, z);
+            
+            // Move Head
+            topicHead.position.lerp(targetPos, 0.5);
+            pointLight.position.copy(topicHead.position);
+
+            // Create the Block (Crystallized Time)
+            const geometry = new THREE.BoxGeometry(1.5, 0.5, 1);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0x00ffcc, 
+                transparent: true, 
+                opacity: 0.6,
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            
+            const block = new THREE.Mesh(geometry, material);
+            block.position.copy(topicHead.position);
+            
+            // Rotate block to face the flow
+            block.lookAt(lastPos); 
+            
+            scene.add(block);
+            blocks.push(block);
+            lastPos.copy(block.position);
+
+            // Update Ledger Data
+            blockHeight++;
+            let hash = generateHash();
+            updateHUD(blockHeight, hash);
+            
+            // Link Visuals (The Chain)
+            if (blocks.length > 1) {
+                const prev = blocks[blocks.length - 2];
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([prev.position, block.position]);
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x005555 });
+                const line = new THREE.Line(lineGeo, lineMat);
+                scene.add(line);
+            }
+
+            // Camera Tracking
+            camera.position.y += 0.8;
+            controls.target.copy(topicHead.position);
+        }
+
+        // --- UTILS ---
+        function generateHash() {
+            return "0x" + Math.random().toString(16).substr(2, 8).toUpperCase();
+        }
+
+        function updateHUD(idx, hash) {
+            document.getElementById('height-val').innerText = idx;
+            document.getElementById('hash-val').innerText = hash;
+            
+            const feed = document.getElementById('block-feed');
+            const entry = document.createElement('div');
+            entry.className = 'block-entry';
+            entry.innerText = `[${idx}] MINTED: ${hash} | Stake: ${stakes}`;
+            feed.prepend(entry);
+            
+            if(feed.children.length > 8) feed.removeChild(feed.lastChild);
+        }
+
+        function togglePause() { isRunning = !isRunning; }
+        
+        function addStakes() { 
+            stakes += 50; 
+            document.getElementById('stakes-val').innerText = stakes;
+            // Visual feedback: Topic gets brighter/larger
+            topicHead.scale.setScalar(1 + (stakes/500));
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            if (isRunning) {
+                frame++;
+                
+                // Pulse the Head
+                topicHead.rotation.y += 0.05;
+                topicHead.rotation.z += 0.02;
+                
+                // Minting Speed depends on Stakes (Gravity)
+                // Higher Stakes = Faster Time (Relativity)
+                let speed = Math.max(5, 60 - (stakes / 10)); 
+                
+                if (frame % Math.floor(speed) === 0) {
+                    mintBlock();
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>

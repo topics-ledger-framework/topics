@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic-Ledger: Dark Matter & Strange Attractors</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
+        #container { display: flex; width: 100vw; height: 100vh; }
+        .dimension { position: relative; flex: 1; border-right: 2px dashed #005500; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 100%; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .hud { position: absolute; top: 20px; padding: 10px; background: rgba(0, 10, 20, 0.8); border: 1px solid #444; color: #aaa; font-size: 12px; pointer-events: auto; }
+        #hud-left { left: 20px; border-color: #00ff00; color: #00ff00; }
+        
+        .controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; pointer-events: auto; }
+        button { background: #001100; border: 1px solid #00ff00; color: #00ff00; padding: 10px 20px; cursor: pointer; text-transform: uppercase; font-family: inherit; }
+        button:hover { background: #00ff00; color: #000; }
+        
+        h2 { margin: 0 0 5px 0; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid currentColor; }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <div id="dim-A" class="dimension"><canvas id="canvas-A"></canvas></div>
+    </div>
+
+    <div id="ui-layer">
+        <div id="hud-left" class="hud">
+            <h2>Universe State</h2>
+            <div>State: <span id="state-A">ALIVE</span></div>
+            <div>IQ: <span id="iq-A">0</span></div>
+            <div>Energy: <span id="energy-A">100</span></div>
+            <div>Dark Matter Nodes: <span id="dm-count">0</span></div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="startSim()">Start</button>
+            <button onclick="injectDarkMatter()">Inject Dark Matter (Dormant Context)</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const DARK_MATTER_MASS = 5000; // Heavy gravity
+        
+        class DarkMatter {
+            constructor(w, h) {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.mass = DARK_MATTER_MASS;
+            }
+            
+            // It has no update() because it doesn't move or die. 
+            // It is a fixed "Strange Attractor" in phase space.
+            
+            draw(ctx) {
+                // Dark Matter is invisible context, but we draw a faint distortion
+                // to show where the "Parent Chain" influence is[cite: 64].
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 40, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(50, 50, 100, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = 'rgba(50, 50, 100, 0.1)';
+                ctx.fill();
+            }
+        }
+
+        class Universe {
+            constructor(canvasId, color) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.color = color;
+                this.active = false;
+                
+                this.organism = { x: 0, y: 0, size: 20, iq: 0, energy: 100, alive: true };
+                this.food = [];
+                this.darkMatter = []; // Array to hold "Dormant Contexts"
+                this.ledger = [];
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.width = this.canvas.width = this.canvas.offsetWidth;
+                this.height = this.canvas.height = this.canvas.offsetHeight;
+                this.organism.x = this.width / 2;
+                this.organism.y = this.height / 2;
+            }
+
+            start() {
+                this.active = true;
+                this.spawnFoodLoop();
+            }
+
+            addDarkMatter() {
+                this.darkMatter.push(new DarkMatter(this.width, this.height));
+                document.getElementById('dm-count').innerText = this.darkMatter.length;
+            }
+
+            spawnFoodLoop() {
+                setInterval(() => {
+                    if(this.active) {
+                        this.food.push({
+                            x: Math.random() * this.width,
+                            y: Math.random() * this.height,
+                            vx: (Math.random()-0.5)*2,
+                            vy: (Math.random()-0.5)*2
+                        });
+                    }
+                }, 50); 
+            }
+
+            update() {
+                if (!this.active) return;
+
+                // Organism Updates
+                this.organism.energy -= 0.05;
+                if(this.organism.energy <= 0) this.organism.energy = 0;
+                this.organism.size = Math.min(60, 20 + (this.organism.iq / 100));
+
+                // Food Updates (The Particle Physics)
+                for (let i = this.food.length - 1; i >= 0; i--) {
+                    let f = this.food[i];
+                    f.x += f.vx; f.y += f.vy;
+
+                    // 1. ORGANISM GRAVITY
+                    let dx = f.x - this.organism.x;
+                    let dy = f.y - this.organism.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < 150) {
+                         f.x -= (dx/dist) * 0.5; // Pull towards life
+                         f.y -= (dy/dist) * 0.5;
+                    }
+
+                    // 2. DARK MATTER GRAVITY (The Invisible Influence)
+                    // "Minds orbit it... strange attractor" 
+                    for (let dm of this.darkMatter) {
+                        let dmx = f.x - dm.x;
+                        let dmy = f.y - dm.y;
+                        let dmDist = Math.sqrt(dmx*dmx + dmy*dmy);
+                        
+                        if (dmDist < 200) {
+                            // Strong pull towards the void
+                            // This creates "Clumps" of food in empty space
+                            f.x -= (dmx/dmDist) * 0.8; 
+                            f.y -= (dmy/dmDist) * 0.8;
+                        }
+                    }
+
+                    // Collision (Eating)
+                    if (dist < this.organism.size) {
+                        this.food.splice(i, 1);
+                        this.organism.energy += 10;
+                        this.organism.iq += 10;
+                        this.ledger.push(1);
+                    }
+                    
+                    // Bounce walls
+                    if(f.x < 0 || f.x > this.width) f.vx *= -1;
+                    if(f.y < 0 || f.y > this.height) f.vy *= -1;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+                
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                // DRAW DARK MATTER (Faintly)
+                for (let dm of this.darkMatter) {
+                    dm.draw(this.ctx);
+                }
+
+                // Draw Organism
+                this.ctx.beginPath();
+                this.ctx.arc(this.organism.x, this.organism.y, this.organism.size, 0, Math.PI*2);
+                this.ctx.fillStyle = this.color;
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.stroke();
+
+                // Draw Food
+                this.ctx.fillStyle = '#ffaa00';
+                for(let f of this.food) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(f.x, f.y, 2, 0, Math.PI*2);
+                    this.ctx.fill();
+                }
+
+                document.getElementById('iq-A').innerText = this.organism.iq;
+                document.getElementById('energy-A').innerText = Math.floor(this.organism.energy);
+            }
+        }
+
+        const univ = new Universe('canvas-A', '#00ff00'); 
+
+        function startSim() { univ.start(); }
+        function injectDarkMatter() { univ.addDarkMatter(); }
+        
+        function loop() {
+            univ.update(); univ.draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+    </script>
+</body>
+</html>
