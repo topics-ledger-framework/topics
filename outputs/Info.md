@@ -19,7 +19,7 @@ This document visualizes the stored vectors and thermodynamic metrics produced b
 <br>
 
 <div align="center">
-  <video src="./outputs/tlt_rotation_dual_sound_v1.mp4" controls="controls" width="100%" poster="">
+  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_rotation_dual_sound_v1.mp4" controls="controls" width="100%">
     Your browser does not support the video tag.
   </video>
 </div>
@@ -40,7 +40,7 @@ This visualization represents the ultimate bridge between the decision-making pr
 <br>
 
 <div align="center">
-  <video src="./outputs/tlt_retrodiction_backward_gcp_v1.mp4" controls="controls" width="100%" poster="">
+  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_retrodiction_backward_gcp_v1.mp4" controls="controls" width="100%">
     Your browser does not support the video tag.
   </video>
 </div>
@@ -56,7 +56,7 @@ As the thermodynamic friction (drag) stabilizes and Shannon Entropy drops, the s
 <br>
 
 <div align="center">
-  <video src="./outputs/tlt_creation_forward_gcp_v1.mp4" controls="controls" width="100%" poster="">
+  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_creation_forward_gcp_v1.mp4" controls="controls" width="100%">
     Your browser does not support the video tag.
   </video>
 </div>
