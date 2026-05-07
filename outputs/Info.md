@@ -19,8 +19,7 @@ This document visualizes the stored vectors and thermodynamic metrics produced b
 <br>
 
 <div align="center">
-  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_rotation_dual_sound_v1.mp4" controls="controls" width="100%">
-    Your browser does not support the video tag.
+  <video src="https://github.com/user-attachments/assets/dd79a20e-388d-4987-987a-06da2b7f6e1f" controls="controls" width="100%">
   </video>
 </div>
 
@@ -40,11 +39,9 @@ This visualization represents the ultimate bridge between the decision-making pr
 <br>
 
 <div align="center">
-  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_retrodiction_backward_gcp_v1.mp4" controls="controls" width="100%">
-    Your browser does not support the video tag.
+  <video src="https://github.com/user-attachments/assets/a140bf6a-9e47-4526-a408-a3d800c8641e" controls="controls" width="100%">
   </video>
 </div>
-
 ---
 
 ## III. The Causal Quantum Ledger: Creation (Assembly)
@@ -56,8 +53,7 @@ As the thermodynamic friction (drag) stabilizes and Shannon Entropy drops, the s
 <br>
 
 <div align="center">
-  <video src="https://github.com/topics-ledger-framework/topics/raw/main/outputs/tlt_creation_forward_gcp_v1.mp4" controls="controls" width="100%">
-    Your browser does not support the video tag.
+  <video src="https://github.com/user-attachments/assets/72a72aa8-025a-4377-8ff0-126aae4d58f4" controls="controls" width="100%">
   </video>
 </div>
 
