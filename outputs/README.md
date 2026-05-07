@@ -6,6 +6,8 @@
 This document visualizes the stored vectors and thermodynamic metrics produced by the Topics Ledger Framework (TLF). By bridging **Algorithmic Logic** (the Directed Acyclic Graph) and **Physical State** (the Quantum Tensor), these simulations demonstrate the core TLF axiom: *a Ledger is not merely a record of events, but the structural scaffold upon which reality is built.*
 
 ---
+*Note on Audio: Please unmute the video players to experience the data-driven sonification mapped directly to the thermodynamic metrics of the simulation.*
+---
 
 ## I. Fractal Ontology & Forward Assembly of a Macro-Topic
 
