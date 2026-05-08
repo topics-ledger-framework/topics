@@ -62,4 +62,22 @@ As the thermodynamic friction (drag) stabilizes and Shannon Entropy drops, the s
 </div>
 
 ---
+
+## IV. The Cosmic Horizon: 2D Observer Perspective
+
+This simulation flattens the 3D topological view into a 2D observer's perspective, much like mapping the Cosmic Microwave Background (CMB) radiation. It visualizes the exact transition of a universe from distributed chaos into a dense, localized reality.
+
+### Visualizing the Cosmic Evolution:
+* **The Green Ring of Exploration:** At maximum entropy (the Void), the causal web searches the far outer edges of the probability ocean. The algorithmic logic is exploring the absolute limits of the void for consensus.
+* **The Probability Radiation (Heatmap):** The background tensor is rendered as a cosmic heatmap. As the universe cools and the algorithm zeros in on the correct causal path, the probability mass pools into the center, visually represented by the accumulation of deep blue and purple energy.
+* **The Big Bang of Consensus:** In the final frames, the probability vector spikes to absolute certainty. The superposition completely collapses, crushing infinite possibilities into a single deterministic truth, resulting in a blinding yellow, orange, and white explosion of localized energy.
+
+<br>
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/f7b8aa7e-c96b-4de2-b052-95417a150b82" controls="controls" width="100%">
+  </video>
+</div>
+
+---
 *Note on Audio: Please unmute the video players to experience the data-driven sonification mapped directly to the thermodynamic metrics of the simulation.*
