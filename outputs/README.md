@@ -80,4 +80,22 @@ This simulation flattens the 3D topological view into a 2D observer's perspectiv
 </div>
 
 ---
+
+## V. The Cosmic Horizon: 2D Observer Perspective (Retrodiction)
+
+This visualization takes the 2D Observer Perspective and applies the **Grover Rewind**. Instead of watching the universe assemble, we watch a stable, localized reality violently deconstruct and dissolve back into the quantum ocean. 
+
+### Visualizing the Universe's Evaporation:
+* **The Bright Center (The Stable Topic):** The simulation begins with the universe perfectly formed. All probability mass is crushed into a blindingly bright point of absolute certainty in the center, held together by maximum thermodynamic friction.
+* **The Causal Explosion:** As the Grover algorithm traces the causal ledger backward, the consensus shatters. The unified algorithmic logic explodes outward, creating parallel histories represented by the rapidly branching green web.
+* **Return to the Void:** The deep purple and blue probability radiation evaporates. The nodes scatter to the farthest edges of the coordinate space, and the deep, resonant gravity bass-rumble disintegrates into the high-frequency static of pure quantum superposition.
+
+<br>
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/643ea1c9-ccc8-4fbb-8a03-126d6e41cf9a" controls="controls" width="100%">
+  </video>
+</div>
+
+---
 *Note on Audio: Please unmute the video players to experience the data-driven sonification mapped directly to the thermodynamic metrics of the simulation.*
