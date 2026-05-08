@@ -98,4 +98,24 @@ This visualization takes the 2D Observer Perspective and applies the **Grover Re
 </div>
 
 ---
+
+## VI. Cosmic Ledger Phenomena: Gravitational Topology
+
+**The Axiom:** *"Density dictates Dimension."* This visualization introduces **Mass and Gravity** into the computational ontology. A "Topic" is treated as an object with varying degrees of algorithmic density that physically distorts the fabric of the probability ocean.
+
+### Visualizing Relativistic Consensus:
+
+* **Gravitational Waves (The Ripple Effect):** When a Supermassive node is born in the DAG, it sends ripples across the Z-axis of the tensor, representing the "vibration" of reality as a new consensus point is established.
+* **Gravity Wells (The Collapse):** As massive nodes age, they "weigh down" the probability fabric, creating localized funnels representing the **Axiom of Attraction**, where established truths pull surrounding mass toward them.
+* **Quasars (Polar Energy Jets):** Briefly during a node’s lifecycle, magenta jets shoot up the Z-axis, representing **Radiative Consensus**—the discharge of algorithmic energy as a topic reaches peak coherence.
+
+<br>
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/a3f002e8-c898-42d4-8804-45c414d94603" controls="controls" width="100%">
+  </video>
+</div>
+
+---
+
 *Note on Audio: Please unmute the video players to experience the data-driven sonification mapped directly to the thermodynamic metrics of the simulation.*
