@@ -3,6 +3,8 @@
 #### December 2025 (Addendum April 2026)
 #### Subject: Math, Physics, Computational Ontology, Complexity Theory
 
+<a href="https://www.youtube.com/watch?v=2pMIVZvAftk" target="_blank">Ever stopped to think about what computation actually is?</a>
+
 ## 🔬 The Experiment: Quantum Retrodiction & The "Catch-22"
 This research utilizes 16-qubit statevector simulations to empirically observe the boundary between structured information (Everything) and maximum entropy (Nothing).
 
